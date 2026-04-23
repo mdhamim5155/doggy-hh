@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ArcFi Mini</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── THEMES ── */
+[data-theme="dark"]{
+  --bg:#09090C;--bg1:#111215;--bg2:#16181E;--bg3:#1C1F27;--bg4:#23262F;
+  --b1:#FFFFFF08;--b2:#FFFFFF10;--b3:#FFFFFF1C;
+  --t1:#EDEEF2;--t2:#737A8C;--t3:#383D4A;
+  --shadow:0 8px 32px rgba(0,0,0,.55);
+}
+[data-theme="light"]{
+  --bg:#F4F5F9;--bg1:#FFFFFF;--bg2:#F0F1F6;--bg3:#E8E9F0;--bg4:#DDDEE8;
+  --b1:#00000008;--b2:#00000012;--b3:#0000001E;
+  --t1:#0F1015;--t2:#5A6175;--t3:#9AA0B2;
+  --shadow:0 8px 32px rgba(0,0,0,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --blue:#3B82F6;--bdim:rgba(59,130,246,.1);
+  --grn:#16A34A;--gdim:rgba(22,163,74,.1);
+  --red:#DC2626;--rdim:rgba(220,38,38,.1);
+  --gold:#D97706;--goldim:rgba(217,119,6,.1);
+  --usdc:#2775CA;
+  --r:12px;--rs:8px;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.5;transition:background .2s,color .2s;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ── APP SHELL ── */
+.shell{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;position:relative;overflow:hidden;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--b2);background:var(--bg);z-index:20;flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:6px;cursor:pointer;}
+.logo{font-size:.92rem;font-weight:700;letter-spacing:-.03em;color:var(--t1);}
+.logo em{color:var(--blue);font-style:normal;}
+.net-pill{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--t3);background:var(--bg3);border:1px solid var(--b2);border-radius:3px;padding:2px 5px;text-transform:uppercase;letter-spacing:.06em;}
+.top-r{display:flex;align-items:center;gap:5px;}
+.theme-btn{width:30px;height:30px;border:1px solid var(--b2);border-radius:var(--rs);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:border-color .15s;}
+.theme-btn:hover{border-color:var(--b3);}
+.w-btn{display:flex;align-items:center;gap:4px;padding:5px 9px;border:1px solid var(--b2);border-radius:14px;background:transparent;color:var(--t2);cursor:pointer;font-size:.7rem;font-weight:500;font-family:'Inter',sans-serif;transition:all .15s;max-width:128px;overflow:hidden;}
+.w-btn:hover{border-color:var(--blue);color:var(--blue);}
+.w-btn.on{border-color:rgba(22,163,74,.35);color:var(--grn);}
+.wdot{width:5px;height:5px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .2s;}
+.wdot.live{background:var(--grn);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+.menu-btn{width:30px;height:30px;border:1px solid var(--b2);border-radius:var(--rs);background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.menu-btn svg{width:13px;height:13px;}
+
+/* ── SCROLL ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* ── PAGE ── */
+.page{display:none;padding:13px 13px 70px;animation:fu .18s ease;}
+.page.active{display:block;}
+@keyframes fu{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── OVERLAY + DRAWER ── */
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.65);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ov.open{opacity:1;pointer-events:all;}
+.drawer{position:absolute;right:0;top:0;bottom:0;width:238px;background:var(--bg1);border-left:1px solid var(--b2);z-index:50;transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.drawer.open{transform:translateX(0);}
+.dr-hd{padding:13px 13px 9px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;}
+.dr-t{font-size:.58rem;font-weight:600;color:var(--t3);letter-spacing:.09em;text-transform:uppercase;}
+.dr-x{width:22px;height:22px;border:none;background:transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dr-x svg{width:11px;height:11px;}
+.dr-body{flex:1;overflow-y:auto;padding:3px 0;}
+.dr-body::-webkit-scrollbar{display:none;}
+.dl{font-size:.54rem;font-weight:600;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:8px 13px 3px;}
+.di{display:flex;align-items:center;padding:9px 13px;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;color:var(--t2);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;gap:7px;transition:background .1s;}
+.di:hover{background:var(--bg2);color:var(--t1);}
+.di.active{color:var(--blue);}
+.dr-dot{width:3px;height:3px;border-radius:50%;background:var(--b3);flex-shrink:0;}
+.di.active .dr-dot{background:var(--blue);}
+.dr-ext{margin-left:auto;font-size:.55rem;color:var(--t3);}
+.dr-sep{height:1px;background:var(--b1);margin:3px 13px;}
+
+/* ── MODAL ── */
+.mwrap{position:absolute;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0;transition:opacity .18s;}
+.mwrap.open{pointer-events:all;opacity:1;}
+.mbg{position:absolute;inset:0;background:rgba(0,0,0,.72);}
+.modal{position:relative;width:100%;max-width:430px;background:var(--bg1);border:1px solid var(--b2);border-radius:16px 16px 0 0;padding:15px 13px 28px;animation:sUp .2s ease;max-height:88vh;overflow-y:auto;}
+@keyframes sUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.mh{width:30px;height:3px;background:var(--b3);border-radius:2px;margin:0 auto 12px;}
+.mt_{font-size:.88rem;font-weight:700;margin-bottom:2px;color:var(--t1);}
+.ms_{font-size:.68rem;color:var(--t3);margin-bottom:12px;}
+
+/* ── WALLET LIST ── */
+.wit{display:flex;align-items:center;gap:9px;padding:10px 9px;border-radius:var(--rs);cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:2px;}
+.wit:hover{background:var(--bg2);}
+.wit.on{background:var(--bg2);border-color:rgba(22,163,74,.2);}
+.wlogo{width:36px;height:36px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.64rem;font-family:'JetBrains Mono',monospace;flex-shrink:0;border:1px solid var(--b2);}
+.wname{font-size:.8rem;font-weight:600;color:var(--t1);}
+.wst{font-size:.62rem;color:var(--t3);margin-top:1px;}
+.wtag{font-size:.54rem;font-family:'JetBrains Mono',monospace;border-radius:3px;padding:2px 5px;border:1px solid var(--b2);background:var(--bg3);color:var(--t3);}
+.wtag.ok{color:var(--grn);border-color:rgba(22,163,74,.2);background:rgba(22,163,74,.06);}
+.wtag.on_{color:var(--blue);border-color:rgba(59,130,246,.2);background:rgba(59,130,246,.06);}
+
+/* ── CARD / FORM ── */
+.card{background:var(--bg1);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:9px;}
+.cb{padding:13px;}
+.st{font-size:.56rem;font-weight:600;color:var(--t3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:7px;}
+.fg{margin-bottom:10px;}
+.fl{font-size:.56rem;font-weight:600;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rs);padding:9px 10px;color:var(--t1);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:var(--blue);}
+.fi::placeholder{color:var(--t3);}
+.frow{display:flex;background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rs);overflow:hidden;transition:border-color .15s;}
+.frow:focus-within{border-color:var(--blue);}
+.frow input{flex:1;background:transparent;border:none;padding:9px 10px;color:var(--t1);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;min-width:0;}
+.frow input::placeholder{color:var(--t3);}
+.ftag{padding:0 9px;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--t3);border-left:1px solid var(--b2);white-space:nowrap;}
+.fmax{padding:0 9px;display:flex;align-items:center;font-size:.62rem;font-weight:600;color:var(--blue);cursor:pointer;border-left:1px solid var(--b2);}
+.fsel{width:100%;background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rs);padding:9px 10px;color:var(--t1);font-family:'Inter',sans-serif;font-size:.82rem;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23383D4A' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;}
+.fsel option{background:var(--bg2);color:var(--t1);}
+
+/* ── INFO BOX ── */
+.ibox{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--rs);padding:9px 10px;margin-bottom:10px;}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:.72rem;}
+.ir:not(:last-child){border-bottom:1px solid var(--b1);}
+.il{color:var(--t3);}
+.iv{font-weight:500;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:.68rem;}
+.iv.g{color:var(--grn);}
+.iv.b{color:var(--blue);}
+.iv.gld{color:var(--gold);}
+.iv.r{color:var(--red);}
+
+/* ── NOTICE ── */
+.note{border-radius:var(--rs);padding:8px 10px;margin-bottom:10px;font-size:.68rem;line-height:1.5;}
+.note.blue{background:var(--bdim);border:1px solid rgba(59,130,246,.18);color:#5B9CF6;}
+.note.grn{background:var(--gdim);border:1px solid rgba(22,163,74,.18);color:#22C55E;}
+.note.gold{background:var(--goldim);border:1px solid rgba(217,119,6,.18);color:#FBBF24;}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn:hover:not(:disabled){filter:brightness(1.08);}
+.btn:active:not(:disabled){transform:scale(.99);}
+.btn:disabled{background:var(--bg3);color:var(--t3);cursor:not-allowed;}
+.btn.grn{background:var(--grn);color:#fff;}
+.btn.red{background:var(--red);}
+.btn.out{background:transparent;border:1px solid var(--b2);color:var(--t2);}
+.btn.out:hover{border-color:var(--b3);color:var(--t1);}
+.btn.sm{width:auto;padding:6px 11px;font-size:.7rem;}
+
+/* ── PAGE HDR ── */
+.phdr{display:flex;align-items:center;gap:7px;padding-bottom:12px;}
+.bk{width:26px;height:26px;border:1px solid var(--b2);border-radius:var(--rs);background:transparent;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bk svg{width:11px;height:11px;}
+.ptitle{font-size:.9rem;font-weight:700;color:var(--t1);}
+.psub{margin-left:auto;font-size:.56rem;font-weight:600;padding:2px 6px;border-radius:3px;}
+.psub.sim{background:var(--goldim);border:1px solid rgba(217,119,6,.2);color:var(--gold);}
+.psub.real{background:var(--gdim);border:1px solid rgba(22,163,74,.2);color:var(--grn);}
+
+/* ── HOME HERO ── */
+.hero{text-align:center;padding:16px 0 12px;}
+.hlbl{font-size:.58rem;color:var(--t3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px;}
+.hbal{font-size:2.3rem;font-weight:700;letter-spacing:-.04em;color:var(--t1);line-height:1;}
+.htoken{font-size:.66rem;color:var(--t3);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+.haddr{display:inline-flex;align-items:center;gap:4px;margin-top:9px;padding:4px 9px;border:1px solid var(--b2);border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--t2);cursor:pointer;transition:border-color .15s;}
+.haddr:hover{border-color:var(--b3);}
+
+/* ── ACT GRID ── */
+.agrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:11px 0;}
+.abtn{background:var(--bg1);border:1px solid var(--b1);border-radius:var(--r);padding:11px 5px;cursor:pointer;text-align:center;transition:all .15s;}
+.abtn:hover{border-color:var(--b2);background:var(--bg2);}
+.aico{width:28px;height:28px;border-radius:7px;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;}
+.aico svg{width:13px;height:13px;}
+.albl{font-size:.6rem;font-weight:600;color:var(--t2);}
+
+/* ── ASSET ROW ── */
+.asset{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--b1);}
+.asset:last-child{border-bottom:none;}
+.alogo{width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;font-family:'JetBrains Mono',monospace;border:1px solid var(--b2);flex-shrink:0;}
+.aname{font-size:.8rem;font-weight:600;color:var(--t1);}
+.achain{font-size:.58rem;color:var(--t3);}
+.abal{font-size:.78rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--t1);}
+.ausd{font-size:.58rem;color:var(--t3);}
+
+/* ── TX ── */
+.txi{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--b1);}
+.txi:last-child{border-bottom:none;}
+.txic{width:28px;height:28px;border-radius:7px;background:var(--bg3);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.txic svg{width:11px;height:11px;color:var(--t3);}
+.txtype{font-size:.76rem;font-weight:600;color:var(--t1);}
+.txdet{font-size:.58rem;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.txamt{font-size:.74rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.txamt.neg{color:var(--red);}
+.txamt.pos{color:var(--grn);}
+.txtime{font-size:.54rem;color:var(--t3);margin-top:1px;}
+
+/* ── POINTS ── */
+.ptsh{text-align:center;padding:12px 0 9px;}
+.ptsn{font-size:2.3rem;font-weight:700;color:var(--gold);letter-spacing:-.04em;}
+.ptsl{font-size:.62rem;color:var(--t3);margin-top:2px;}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b1);}
+.pi:last-child{border-bottom:none;}
+.piname{font-size:.76rem;font-weight:500;color:var(--t1);}
+.pival{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:600;color:var(--gold);background:var(--goldim);border:1px solid rgba(217,119,6,.15);border-radius:3px;padding:2px 5px;}
+
+/* ── STREAK ── */
+.skrow{display:flex;gap:3px;margin:8px 0;}
+.skd{flex:1;height:5px;border-radius:2px;background:var(--bg3);border:1px solid var(--b1);transition:all .25s;}
+.skd.done{background:var(--gold);border-color:var(--gold);}
+.skd.cur{background:var(--blue);border-color:var(--blue);}
+
+/* ── CONN SCREEN ── */
+.csc{padding:32px 13px;text-align:center;}
+.cst{font-size:.92rem;font-weight:700;margin-bottom:5px;color:var(--t1);}
+.csp{font-size:.76rem;color:var(--t3);line-height:1.6;margin-bottom:16px;}
+
+/* ── SWAP ARROW ── */
+.swarr{text-align:center;margin:2px 0;font-size:.9rem;color:var(--t3);}
+
+/* ── PROGRESS ── */
+.progbar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:3px;}
+.progfill{height:100%;background:var(--blue);border-radius:2px;transition:width .4s;}
+
+/* ── LOADING SPINNER ── */
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--b2);border-top-color:var(--blue);border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:4px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ── UTIL ── */
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}
+.empty{text-align:center;padding:16px 0;font-size:.74rem;color:var(--t3);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rs);padding:8px 13px;font-size:.72rem;font-weight:500;z-index:999;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap;max-width:92vw;text-align:center;box-shadow:var(--shadow);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.s{border-color:rgba(22,163,74,.3);color:#4ADE80;}
+#toast.e{border-color:rgba(220,38,38,.3);color:#F87171;}
+#toast.i{border-color:rgba(59,130,246,.3);color:#60A5FA;}
+#toast.w{border-color:rgba(217,119,6,.3);color:#FBB93F;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo-wrap" onclick="nav('home')">
+    <span class="logo">Arc<em>Fi</em></span>
+    <span class="net-pill">Testnet</span>
+  </div>
+  <div class="top-r">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <button class="w-btn" id="wBtn" onclick="openWM()">
+      <div class="wdot" id="wDot"></div>
+      <span id="wTxt" style="overflow:hidden;text-overflow:ellipsis;">Connect</span>
+    </button>
+    <button class="menu-btn" onclick="openDr()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- SCROLL -->
+<div class="scroll" id="SA">
+
+  <!-- ── HOME ── -->
+  <div class="page active" id="page-home">
+    <div id="hm-dis">
+      <div class="csc">
+        <div class="cst">ArcFi Mini</div>
+        <p class="csp">Real DeFi on Arc Testnet.<br>USDC is the native gas token.<br>Connect wallet to start.</p>
+        <button class="btn" style="max-width:170px;margin:0 auto 10px;display:block;" onclick="openWM()">Connect Wallet</button>
+        <div style="font-size:.6rem;color:var(--t3);">Arc Testnet · Chain 1322 · USDC Gas</div>
+      </div>
+      <div class="card"><div class="cb">
+        <div class="st">About ArcFi Mini</div>
+        <div style="font-size:.72rem;color:var(--t3);line-height:1.7;">ArcFi Mini is a DeFi dashboard on Arc Testnet — where USDC is both the native gas token and primary asset. Connect MetaMask, Rabby, Zerion, or Coinbase Wallet. All transactions require your wallet signature. Get free test USDC from Circle's faucet.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;">
+          <a href="https://testnet.arcscan.app/" target="_blank" style="font-size:.58rem;font-family:'JetBrains Mono',monospace;color:var(--blue);text-decoration:none;background:var(--bdim);border:1px solid rgba(59,130,246,.18);border-radius:3px;padding:2px 6px;">Explorer ↗</a>
+          <a href="https://faucet.circle.com/" target="_blank" style="font-size:.58rem;font-family:'JetBrains Mono',monospace;color:var(--grn);text-decoration:none;background:var(--gdim);border:1px solid rgba(22,163,74,.18);border-radius:3px;padding:2px 6px;">Get Test USDC ↗</a>
+        </div>
+      </div></div>
+    </div>
+
+    <div id="hm-con" style="display:none;">
+      <!-- HERO BALANCE -->
+      <div class="hero">
+        <div class="hlbl">USDC Balance</div>
+        <div class="hbal" id="hBal">—</div>
+        <div class="htoken">USDC · Arc Testnet · Gas Token</div>
+        <div class="haddr" onclick="copyAddr()" id="hAddr">
+          <div class="wdot live"></div>
+          <span id="hAddrTxt">—</span>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </div>
+      </div>
+
+      <!-- ACTION GRID -->
+      <div class="agrid">
+        <div class="abtn" onclick="nav('send')">
+          <div class="aico" style="background:var(--bdim);"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
+          <div class="albl">Send</div>
+        </div>
+        <div class="abtn" onclick="nav('receive')">
+          <div class="aico" style="background:var(--gdim);"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+          <div class="albl">Receive</div>
+        </div>
+        <div class="abtn" onclick="nav('swap')">
+          <div class="aico" style="background:var(--goldim);"><svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
+          <div class="albl">Swap</div>
+        </div>
+        <div class="abtn" onclick="nav('bridge')">
+          <div class="aico" style="background:var(--rdim);"><svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+          <div class="albl">Bridge</div>
+        </div>
+      </div>
+
+      <!-- PORTFOLIO -->
+      <div class="st">Portfolio</div>
+      <div class="card mb8"><div class="cb" id="portList"><div class="empty"><span class="spin"></span>Loading…</div></div></div>
+
+      <!-- RECENT -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+        <span class="st" style="margin:0;">Recent</span>
+        <button class="btn out sm" onclick="nav('history')">All →</button>
+      </div>
+      <div class="card"><div class="cb" id="homeRecent"><div class="empty">No activity</div></div></div>
+    </div>
+  </div>
+
+  <!-- ── SEND ── -->
+  <div class="page" id="page-send">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Send USDC</span><span class="psub real">Real TX</span></div>
+    <div class="note blue">Real ERC20 transfer on Arc Testnet. Gas fee deducted in USDC from your wallet.</div>
+    <div class="fg"><label class="fl">Recipient Address</label><input class="fi mono" id="sTo" type="text" placeholder="0x..." oninput="sendPrev()"></div>
+    <div class="fg"><label class="fl">Amount (USDC)</label>
+      <div class="frow"><input type="number" id="sAmt" placeholder="0.00" oninput="sendPrev()" min="0" step="any"><span class="fmax" onclick="sendMax()">MAX</span><span class="ftag">USDC</span></div>
+    </div>
+    <div class="ibox" id="sPrev" style="display:none;">
+      <div class="ir"><span class="il">Amount</span><span class="iv" id="spAmt">—</span></div>
+      <div class="ir"><span class="il">To</span><span class="iv" id="spTo" style="font-size:.58rem;">—</span></div>
+      <div class="ir"><span class="il">Network</span><span class="iv">Arc Testnet (1322)</span></div>
+      <div class="ir"><span class="il">Gas Token</span><span class="iv b">USDC</span></div>
+      <div class="ir"><span class="il">Contract</span><span class="iv" style="font-size:.54rem;">0x3600…0000</span></div>
+    </div>
+    <button class="btn" id="sendBtn" onclick="doSend()">Confirm Send — Sign in Wallet</button>
+    <div style="text-align:center;margin-top:7px;font-size:.6rem;color:var(--t3);">Transaction signed by your wallet · <a href="https://testnet.arcscan.app/" target="_blank" style="color:var(--blue);">View Explorer ↗</a></div>
+  </div>
+
+  <!-- ── RECEIVE ── -->
+  <div class="page" id="page-receive">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Receive USDC</span></div>
+    <div style="text-align:center;padding:12px 0;">
+      <div class="st">Your Wallet Address</div>
+      <div id="rcvAddr" class="mono" style="font-size:.66rem;color:var(--t2);background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rs);padding:12px;word-break:break-all;text-align:left;margin-bottom:10px;">—</div>
+      <button class="btn" onclick="copyAddr()">Copy Address</button>
+    </div>
+    <div class="ibox">
+      <div class="ir"><span class="il">Network</span><span class="iv">Arc Testnet</span></div>
+      <div class="ir"><span class="il">Chain ID</span><span class="iv">1322 (0x52A)</span></div>
+      <div class="ir"><span class="il">Gas Token</span><span class="iv b">USDC</span></div>
+      <div class="ir"><span class="il">USDC Contract</span><span class="iv" style="font-size:.56rem;">0x3600…0000</span></div>
+    </div>
+    <div class="note gold">Only send USDC on Arc Testnet to this address.</div>
+  </div>
+
+  <!-- ── SWAP ── -->
+  <div class="page" id="page-swap">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Swap</span><span class="psub sim">Simulated</span></div>
+    <div class="note gold">Simulated swap — no DEX live on Arc Testnet yet. Rates are fixed/live. Balance updates locally.</div>
+
+    <div class="fg"><label class="fl">From</label>
+      <div style="display:flex;gap:5px;">
+        <div class="frow" style="flex:1;">
+          <input type="number" id="swIn" placeholder="0.00" oninput="calcSwap()" min="0" step="any">
+          <span class="fmax" onclick="swapMax()">MAX</span>
+        </div>
+        <select class="fsel" id="swFrom" onchange="calcSwap()" style="width:100px;"><option>USDC</option><option>USDT</option><option>EURC</option><option>AUSD</option><option>DAI</option><option>ADA</option><option>POL</option><option>ETH</option></select>
+      </div>
+    </div>
+    <div class="swarr">↕</div>
+    <div class="fg"><label class="fl">To</label>
+      <div style="display:flex;gap:5px;">
+        <div class="frow" style="flex:1;opacity:.7;pointer-events:none;"><input type="number" id="swOut" placeholder="0.00" readonly></div>
+        <select class="fsel" id="swTo" onchange="calcSwap()" style="width:100px;"><option>ETH</option><option>USDC</option><option>USDT</option><option>EURC</option><option>AUSD</option><option>DAI</option><option>ADA</option><option>POL</option></select>
+      </div>
+    </div>
+    <div class="ibox">
+      <div class="ir"><span class="il">Rate</span><span class="iv" id="swRate">—</span></div>
+      <div class="ir"><span class="il">Your Balance</span><span class="iv" id="swBal">—</span></div>
+      <div class="ir"><span class="il">Fee</span><span class="iv" id="swFee">None</span></div>
+      <div class="ir"><span class="il">Price Source</span><span class="iv" id="swSrc">—</span></div>
+    </div>
+    <button class="btn" id="swapBtn" onclick="doSwap()">Confirm Swap</button>
+  </div>
+
+  <!-- ── BRIDGE ── -->
+  <div class="page" id="page-bridge">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Bridge</span><span class="psub sim">CCTP Sim</span></div>
+    <div class="note blue">Bridge from Sepolia → Arc Testnet. Wallet signs on source chain (Sepolia ETH gas). USDC arrives on Arc in 2–10 sec.</div>
+
+    <div class="fg"><label class="fl">Source Network</label>
+      <select class="fsel" id="brFrom">
+        <option value="sep">Ethereum Sepolia</option>
+        <option value="bsep">Base Sepolia</option>
+      </select>
+    </div>
+    <div class="swarr" style="margin:3px 0;">↓</div>
+    <div class="fg"><label class="fl">Destination</label>
+      <div class="fi" style="color:var(--t3);pointer-events:none;">Arc Testnet (Chain 1322)</div>
+    </div>
+    <div class="fg"><label class="fl">Token</label>
+      <select class="fsel" id="brToken"><option>USDC</option><option>EURC</option></select>
+    </div>
+    <div class="fg"><label class="fl">Amount</label>
+      <div class="frow"><input type="number" id="brAmt" placeholder="0.00" min="0" step="any"><span class="ftag" id="brTtag">USDC</span></div>
+    </div>
+    <div class="ibox">
+      <div class="ir"><span class="il">Source Gas</span><span class="iv">ETH (Sepolia)</span></div>
+      <div class="ir"><span class="il">Destination Gas</span><span class="iv b">USDC (Arc)</span></div>
+      <div class="ir"><span class="il">Protocol</span><span class="iv">Circle CCTP (sim)</span></div>
+      <div class="ir"><span class="il">Est. Time</span><span class="iv">2–10 sec</span></div>
+      <div class="ir"><span class="il">Source USDC</span><span class="iv mono" style="font-size:.54rem;">0x1c7D…7238 (Sepolia)</span></div>
+      <div class="ir"><span class="il">Destination USDC</span><span class="iv mono" style="font-size:.54rem;">0x3600…0000 (Arc)</span></div>
+    </div>
+    <button class="btn" id="brBtn" onclick="doBridge()">Bridge — Sign in Wallet</button>
+    <div class="card mt8"><div class="cb">
+      <div class="st">Faucets</div>
+      <div class="ir"><span class="il" style="font-size:.7rem;">Test USDC (Arc)</span><a href="https://faucet.circle.com/" target="_blank" style="font-size:.64rem;color:var(--grn);text-decoration:none;">faucet.circle.com ↗</a></div>
+      <div class="ir"><span class="il" style="font-size:.7rem;">Sepolia ETH</span><a href="https://sepoliafaucet.com" target="_blank" style="font-size:.64rem;color:var(--blue);text-decoration:none;">sepoliafaucet.com ↗</a></div>
+      <div class="ir"><span class="il" style="font-size:.7rem;">Base Sepolia</span><a href="https://faucet.quicknode.com/base/sepolia" target="_blank" style="font-size:.64rem;color:var(--blue);text-decoration:none;">quicknode ↗</a></div>
+    </div></div>
+  </div>
+
+  <!-- ── STAKING ── -->
+  <div class="page" id="page-stake">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Staking</span><span class="psub sim">Simulated</span></div>
+    <div class="note gold">Simulated staking — no live staking contract on Arc Testnet. Balances update locally.</div>
+
+    <div class="ibox mb12">
+      <div class="ir"><span class="il">Your USDC Balance</span><span class="iv b" id="stBal">—</span></div>
+      <div class="ir"><span class="il">Staked (tUSDC)</span><span class="iv" id="stStaked">0.000000</span></div>
+      <div class="ir"><span class="il">Pending Reward</span><span class="iv g" id="stReward">+0.000000 USDC</span></div>
+      <div class="ir"><span class="il">Ratio</span><span class="iv">1 USDC = 1 tUSDC</span></div>
+      <div class="ir"><span class="il">APY</span><span class="iv g">5% (simulated)</span></div>
+    </div>
+
+    <div id="stActiveBox" style="display:none;" class="mb12">
+      <div class="progbar"><div class="progfill" id="stBar" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.56rem;color:var(--t3);margin-top:2px;"><span>Reward progress</span><span id="stPct">0%</span></div>
+      <button class="btn red mt8" style="padding:9px;" onclick="doUnstake()">Unstake + Claim (1:1 USDC)</button>
+    </div>
+
+    <div class="fg"><label class="fl">Stake Amount (USDC)</label>
+      <div class="frow"><input type="number" id="stAmt" placeholder="0.00" oninput="calcStake()" min="0" step="any"><span class="fmax" onclick="stakeMax()">MAX</span><span class="ftag">USDC</span></div>
+    </div>
+    <div class="ibox">
+      <div class="ir"><span class="il">You Stake</span><span class="iv" id="stPI">0.00 USDC</span></div>
+      <div class="ir"><span class="il">You Receive</span><span class="iv" id="stPO">0.00 tUSDC (1:1)</span></div>
+      <div class="ir"><span class="il">Reward (5%)</span><span class="iv g" id="stPR">+0.00 USDC</span></div>
+      <div class="ir"><span class="il">Points</span><span class="iv gld" id="stPP">+0 pts</span></div>
+    </div>
+    <button class="btn grn" onclick="doStake()">Stake USDC</button>
+  </div>
+
+  <!-- ── DAILY CHECK ── -->
+  <div class="page" id="page-checkin">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Daily Check-in</span></div>
+    <div style="text-align:center;padding:12px 0 14px;">
+      <div class="st">Current Streak</div>
+      <div style="font-size:2.6rem;font-weight:700;letter-spacing:-.04em;color:var(--t1);" id="ciStr">0</div>
+      <div style="font-size:.64rem;color:var(--t3);">days</div>
+    </div>
+    <div class="skrow" id="ciDots"><div class="skd"></div><div class="skd"></div><div class="skd"></div><div class="skd"></div><div class="skd"></div><div class="skd"></div><div class="skd"></div></div>
+    <div class="card mt8"><div class="cb">
+      <div class="ir"><span class="il">Total Points</span><span class="iv gld" id="ciPts">0</span></div>
+      <div class="ir"><span class="il">Today's Reward</span><span class="iv" id="ciTodayPts">+5 pts</span></div>
+      <div class="ir"><span class="il">Streak Bonus</span><span class="iv gld" id="ciBonus">—</span></div>
+      <div class="ir"><span class="il">Next Milestone</span><span class="iv" id="ciNextMs">7-day (+50 bonus)</span></div>
+      <div class="ir"><span class="il">Status</span><span class="iv g" id="ciStat">Ready</span></div>
+    </div></div>
+    <div class="ibox mt8">
+      <div style="font-size:.56rem;font-weight:600;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">Reward Schedule</div>
+      <div class="ir"><span class="il">Day 1–7 (base)</span><span class="iv">5 pts/day</span></div>
+      <div class="ir"><span class="il">7-Day Bonus</span><span class="iv gld">+50 pts · +2 extra/day</span></div>
+      <div class="ir"><span class="il">Day 7–14</span><span class="iv">7 pts/day (5+2)</span></div>
+      <div class="ir"><span class="il">14-Day Bonus</span><span class="iv gld">+100 pts · +3 extra/day</span></div>
+      <div class="ir"><span class="il">Day 14–30</span><span class="iv">8 pts/day (5+3)</span></div>
+      <div class="ir"><span class="il">30-Day Bonus</span><span class="iv gld">+200 pts · +5 extra/day</span></div>
+    </div>
+    <button class="btn mt8" id="ciBtn" onclick="doCheckin()">Claim Daily Reward</button>
+    <div style="text-align:center;margin-top:6px;font-size:.6rem;color:var(--t3);" id="ciMsg"></div>
+  </div>
+
+  <!-- ── DEPLOY ── -->
+  <div class="page" id="page-deploy">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Deploy Contract</span><span class="psub sim">Fun/Demo</span></div>
+    <div class="note blue">Generates a simulated contract deployment on Arc Testnet. For demonstration only.</div>
+    <div class="fg"><label class="fl">Contract Name</label><input class="fi" id="depName" placeholder="MyToken" value="MyToken"></div>
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fsel" id="depType"><option>ERC20 Token</option><option>ERC721 NFT</option><option>Multisig Wallet</option><option>Staking Pool</option><option>DEX Pair</option></select>
+    </div>
+    <div class="fg"><label class="fl">Symbol</label><input class="fi" id="depSym" placeholder="MTK"></div>
+    <div class="card mb10" id="depResult" style="display:none;"><div class="cb">
+      <div class="st">Deployment Receipt</div>
+      <div class="ir"><span class="il">Name</span><span class="iv" id="drName">—</span></div>
+      <div class="ir"><span class="il">Contract Addr</span><span class="iv" style="font-size:.54rem;" id="drAddr">—</span></div>
+      <div class="ir"><span class="il">Tx Hash</span><span class="iv" style="font-size:.54rem;" id="drHash">—</span></div>
+      <div class="ir"><span class="il">Block</span><span class="iv" id="drBlock">—</span></div>
+      <div class="ir"><span class="il">Status</span><span class="iv g">Confirmed</span></div>
+      <a href="#" id="drExpLink" target="_blank" style="display:block;margin-top:7px;font-size:.66rem;color:var(--blue);text-decoration:none;">View on Arc Explorer ↗</a>
+    </div></div>
+    <button class="btn" id="depBtn" onclick="doDeploy()">Deploy Contract</button>
+  </div>
+
+  <!-- ── POINTS ── -->
+  <div class="page" id="page-points">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">Points</span></div>
+    <div class="ptsh"><div class="ptsn" id="ptsTot">0</div><div class="ptsl">Total Points Earned</div></div>
+    <div class="st mb8">Breakdown</div>
+    <div class="card mb10"><div class="cb" id="ptsBd"><div class="empty">No points yet</div></div></div>
+    <div class="st mb8">Earn Points</div>
+    <div class="card"><div class="cb">
+      <div class="pi"><span class="piname">Daily Check-in (base)</span><span class="pival">5 pts</span></div>
+      <div class="pi"><span class="piname">7-Day Streak Bonus</span><span class="pival">+50 pts</span></div>
+      <div class="pi"><span class="piname">14-Day Streak Bonus</span><span class="pival">+100 pts</span></div>
+      <div class="pi"><span class="piname">30-Day Streak Bonus</span><span class="pival">+200 pts</span></div>
+      <div class="pi"><span class="piname">Send USDC</span><span class="pival">+5 pts</span></div>
+      <div class="pi"><span class="piname">Swap</span><span class="pival">+3 pts</span></div>
+      <div class="pi"><span class="piname">Bridge</span><span class="pival">+5 pts</span></div>
+      <div class="pi"><span class="piname">Stake (per USDC)</span><span class="pival">+2 pts</span></div>
+      <div class="pi"><span class="piname">Deploy Contract</span><span class="pival">+10 pts</span></div>
+    </div></div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="page" id="page-history">
+    <div class="phdr"><button class="bk" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button><span class="ptitle">History</span></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:7px;">
+      <button class="btn out sm" onclick="clearHist()">Clear All</button>
+    </div>
+    <div class="card"><div class="cb" id="histList"><div class="empty">No transactions yet</div></div></div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- OVERLAY + DRAWER -->
+<div class="ov" id="ov" onclick="closeDr()"></div>
+<div class="drawer" id="drawer">
+  <div class="dr-hd">
+    <span class="dr-t">Menu</span>
+    <button class="dr-x" onclick="closeDr()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="dr-body">
+    <div class="dl">Main</div>
+    <button class="di active" id="di-home" onclick="dNav('home')"><div class="dr-dot"></div>Dashboard</button>
+    <div class="dr-sep"></div>
+    <div class="dl">Actions</div>
+    <button class="di" id="di-send" onclick="dNav('send')"><div class="dr-dot"></div>Send USDC</button>
+    <button class="di" id="di-swap" onclick="dNav('swap')"><div class="dr-dot"></div>Swap</button>
+    <button class="di" id="di-bridge" onclick="dNav('bridge')"><div class="dr-dot"></div>Bridge</button>
+    <button class="di" id="di-stake" onclick="dNav('stake')"><div class="dr-dot"></div>Staking</button>
+    <button class="di" id="di-deploy" onclick="dNav('deploy')"><div class="dr-dot"></div>Deploy Contract</button>
+    <div class="dr-sep"></div>
+    <div class="dl">Earn</div>
+    <button class="di" id="di-checkin" onclick="dNav('checkin')"><div class="dr-dot"></div>Daily Check-in</button>
+    <button class="di" id="di-points" onclick="dNav('points')"><div class="dr-dot"></div>Points</button>
+    <div class="dr-sep"></div>
+    <div class="dl">More</div>
+    <button class="di" id="di-history" onclick="dNav('history')"><div class="dr-dot"></div>History</button>
+    <button class="di" onclick="xOpen('https://faucet.circle.com/')"><div class="dr-dot"></div>Get Test USDC<span class="dr-ext">↗</span></button>
+    <button class="di" onclick="xOpen('https://testnet.arcscan.app/')"><div class="dr-dot"></div>Arc Explorer<span class="dr-ext">↗</span></button>
+  </div>
+</div>
+
+<!-- WALLET MODAL -->
+<div class="mwrap" id="wModal">
+  <div class="mbg" onclick="closeWM()"></div>
+  <div class="modal">
+    <div class="mh"></div>
+    <div class="mt_">Connect Wallet</div>
+    <div class="ms_">Select wallet → connects to Arc Testnet (Chain 1322) · USDC gas</div>
+    <div id="wList"></div>
+    <div style="margin-top:10px;text-align:center;font-size:.64rem;color:var(--t3);">
+      No wallet? <a href="https://metamask.io" target="_blank" style="color:var(--blue);">MetaMask</a> · <a href="https://rabby.io" target="_blank" style="color:var(--blue);">Rabby</a> · <a href="https://zerion.io" target="_blank" style="color:var(--blue);">Zerion</a>
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════
+//  CONSTANTS
+// ═══════════════════════════
+// Arc Testnet USDC — system/native contract (ERC20 interface, 6 decimals)
+const USDC_ARC  = '0x3600000000000000000000000000000000000000';
+// Sepolia USDC (used for bridge source)
+const USDC_SEP  = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
+// Arc EURC
+const EURC_ARC  = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+const EXPLORER  = 'https://testnet.arcscan.app';
+
+const ARC_CHAIN = {
+  chainId: '0x52A',
+  chainName: 'Arc Testnet',
+  nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 6 },
+  rpcUrls: ['https://rpc.arc.testnet.network'],
+  blockExplorerUrls: [EXPLORER]
+};
+const SEP_CHAIN = {
+  chainId: '0xAA36A7',
+  chainName: 'Ethereum Sepolia',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: ['https://rpc.sepolia.org'],
+  blockExplorerUrls: ['https://sepolia.etherscan.io']
+};
+const BSEP_CHAIN = {
+  chainId: '0x14A34',
+  chainName: 'Base Sepolia',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: ['https://sepolia.base.org'],
+  blockExplorerUrls: ['https://sepolia-explorer.base.org']
+};
+
+// Simulated swap rates (USDC → X forward)
+const FWDRATES = { USDT:1, EURC:1, AUSD:4, DAI:7, ADA:3, POL:17 };
+// PENALTY for reverse swaps
+const PENALTY = () => 0.03 + Math.random() * 0.02;
+
+// ═══════════════════════════
+//  SESSION STATE
+// ═══════════════════════════
+let W = { connected: false, address: '', type: '' };
+let usdcBal = null;   // real from chain
+let ethPrice = null;  // from CoinGecko
+
+// ═══════════════════════════
+//  PERSISTENT STATE
+// ═══════════════════════════
+const LSK = 'arcfi_v6';
+function loadLS() { try { return JSON.parse(localStorage.getItem(LSK)||'{}'); } catch { return {}; } }
+function saveLS() { try { localStorage.setItem(LSK, JSON.stringify(LS)); } catch {} }
+let LS = {
+  txs:[], points:0, streak:0, lastCheckin:null,
+  pts_bd:{}, simBal:{}, tusdc:0, treward:0,
+  theme:'dark', _m7:false, _m14:false, _m30:false,
+  ...loadLS()
+};
+
+// ═══════════════════════════
+//  WALLETS
+// ═══════════════════════════
+const WALLETS = [
+  { id:'metamask', name:'MetaMask',       abbr:'MM', detect:()=>!!(window.ethereum?.isMetaMask && !window.ethereum?.isRabby) },
+  { id:'rabby',    name:'Rabby',          abbr:'RB', detect:()=>!!(window.ethereum?.isRabby) },
+  { id:'zerion',   name:'Zerion',         abbr:'ZR', detect:()=>!!(window.ethereum?.isZerion || window.zerionWallet) },
+  { id:'coinbase', name:'Coinbase Wallet',abbr:'CB', detect:()=>!!(window.ethereum?.isCoinbaseWallet) },
+];
+
+function buildWList() {
+  document.getElementById('wList').innerHTML = WALLETS.map(w => {
+    const det = w.detect();
+    const isCon = W.connected && W.type === w.id;
+    return `<div class="wit ${isCon?'on':''}" onclick="connWallet('${w.id}')">
+      <div class="wlogo" style="${det?'color:var(--grn);border-color:rgba(22,163,74,.25);':''}">${w.abbr}</div>
+      <div style="flex:1;"><div class="wname">${w.name}</div><div class="wst">${isCon?'Connected · '+sa(W.address):det?'Detected · Ready':'Not installed'}</div></div>
+      <span class="wtag ${isCon?'on_':det?'ok':''}">${isCon?'Active':det?'Ready':'Install'}</span>
+    </div>`;
+  }).join('');
+}
+
+function openWM() { buildWList(); document.getElementById('wModal').classList.add('open'); }
+function closeWM() { document.getElementById('wModal').classList.remove('open'); }
+
+async function connWallet(id) {
+  const w = WALLETS.find(x=>x.id===id);
+  if (!w) return;
+  if (!w.detect()) {
+    const urls = { metamask:'https://metamask.io', rabby:'https://rabby.io', zerion:'https://zerion.io', coinbase:'https://www.coinbase.com/wallet' };
+    toast('Not installed — opening…','w');
+    setTimeout(()=>window.open(urls[id],'_blank'),900); return;
+  }
+  closeWM();
+  await doConnect(id);
+}
+
+async function doConnect(wid) {
+  if (!window.ethereum) { toast('No wallet found','e'); return; }
+  try {
+    toast('Connecting…','i');
+    const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+
+    // Add/switch to Arc Testnet
+    try {
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN.chainId}] });
+    } catch(sw) {
+      if (sw.code===4902) {
+        try { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[ARC_CHAIN] }); }
+        catch { toast('Add Arc Testnet manually','w'); }
+      } else if (sw.code===4001) { toast('Network switch denied','e'); }
+    }
+
+    W = { connected:true, address:accounts[0], type:wid };
+    onConnected();
+    await loadBalance();
+
+    window.ethereum.on('accountsChanged', accs => {
+      if (!accs.length) disconnect();
+      else { W.address=accs[0]; onConnected(); loadBalance(); }
+    });
+    window.ethereum.on('chainChanged', ()=>{ loadBalance(); });
+  } catch(e) {
+    if (e.code===4001) toast('Connection rejected','e');
+    else toast('Error: '+(e.message||'').slice(0,55),'e');
+  }
+}
+
+function onConnected() {
+  document.getElementById('wBtn').classList.add('on');
+  document.getElementById('wDot').classList.add('live');
+  document.getElementById('wTxt').textContent = sa(W.address);
+  document.getElementById('hm-dis').style.display = 'none';
+  document.getElementById('hm-con').style.display  = 'block';
+  document.getElementById('hAddrTxt').textContent  = sa(W.address);
+  document.getElementById('rcvAddr').textContent   = W.address;
+  buildWList();
+  refreshAll();
+  toast('Connected · '+sa(W.address),'s');
+}
+
+function disconnect() {
+  W = { connected:false, address:'', type:'' };
+  usdcBal = null;
+  document.getElementById('wBtn').classList.remove('on');
+  document.getElementById('wDot').classList.remove('live');
+  document.getElementById('wTxt').textContent = 'Connect';
+  document.getElementById('hm-dis').style.display = 'block';
+  document.getElementById('hm-con').style.display  = 'none';
+  nav('home');
+}
+
+// ═══════════════════════════
+//  REAL BALANCE
+// ═══════════════════════════
+async function loadBalance() {
+  if (!W.connected || !window.ethereum) return;
+  document.getElementById('hBal').textContent = '…';
+  try {
+    // balanceOf(address) on USDC_ARC (6 decimals)
+    const data = '0x70a08231' + W.address.slice(2).padStart(64,'0');
+    const res  = await window.ethereum.request({
+      method:'eth_call', params:[{to:USDC_ARC, data},'latest']
+    });
+    usdcBal = (res && res!=='0x' && res!=='0x0')
+      ? Number(BigInt(res)) / 1e6
+      : 0;
+  } catch {
+    usdcBal = 0;
+    toast('Balance fetch failed — check network','w');
+  }
+  refreshAll();
+}
+
+// ═══════════════════════════
+//  ETH PRICE (CoinGecko)
+// ═══════════════════════════
+async function getEthPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const d = await r.json();
+    ethPrice = d.ethereum?.usd || null;
+  } catch { ethPrice = null; }
+  return ethPrice;
+}
+
+// ═══════════════════════════
+//  SEND (REAL ERC20 TRANSFER)
+// ═══════════════════════════
+function sendPrev() {
+  const amt  = parseFloat(document.getElementById('sAmt').value)||0;
+  const addr = document.getElementById('sTo').value.trim();
+  const box  = document.getElementById('sPrev');
+  if (amt>0) {
+    box.style.display = 'block';
+    document.getElementById('spAmt').textContent = fmt(amt)+' USDC';
+    document.getElementById('spTo').textContent  = addr ? (addr.length>16?addr.slice(0,10)+'…'+addr.slice(-6):addr) : '—';
+  } else box.style.display='none';
+}
+function sendMax() {
+  if (usdcBal===null) return;
+  document.getElementById('sAmt').value = Math.max(0,usdcBal-0.001).toFixed(6);
+  sendPrev();
+}
+
+async function doSend() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const to  = document.getElementById('sTo').value.trim();
+  const amt = parseFloat(document.getElementById('sAmt').value)||0;
+  if (!to.startsWith('0x')||to.length!==42){toast('Invalid address','e');return;}
+  if (amt<=0){toast('Enter amount','e');return;}
+  if (usdcBal!==null&&amt>usdcBal){toast('Insufficient USDC','e');return;}
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Sign in wallet…';
+  try {
+    // ERC20 transfer(address,uint256)
+    const amtHex = BigInt(Math.round(amt*1e6)).toString(16).padStart(64,'0');
+    const toHex  = to.slice(2).padStart(64,'0');
+    const txHash = await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{ from:W.address, to:USDC_ARC, data:'0xa9059cbb'+toHex+amtHex, gas:'0x186A0' }]
+    });
+    if (usdcBal!==null) usdcBal = Math.max(0,usdcBal-amt);
+    addTx('Send','To '+sa(to),-amt,'USDC',txHash,false);
+    addPts('send',5);
+    document.getElementById('sTo').value='';
+    document.getElementById('sAmt').value='';
+    document.getElementById('sPrev').style.display='none';
+    refreshAll();
+    toast('Sent '+fmt(amt)+' USDC ✓','s');
+  } catch(e){
+    if (e.code===4001) toast('Rejected','e');
+    else toast('Send failed: '+(e.message||'').slice(0,55),'e');
+  } finally { btn.disabled=false; btn.textContent='Confirm Send — Sign in Wallet'; }
+}
+
+// ═══════════════════════════
+//  SWAP (SIMULATED + LIVE ETH)
+// ═══════════════════════════
+async function calcSwap() {
+  const fSym = document.getElementById('swFrom').value;
+  const tSym = document.getElementById('swTo').value;
+  const amt  = parseFloat(document.getElementById('swIn').value)||0;
+  if (fSym===tSym){document.getElementById('swOut').value='';return;}
+
+  const fBal = getBal(fSym);
+  document.getElementById('swBal').textContent = fmt(fBal)+' '+fSym;
+
+  let out=0,rate='—',fee='None',src='Fixed rate';
+  const fwd = `USDC→${tSym}`, rev = `USDC→${fSym}`;
+
+  if ((fSym==='USDC'||fSym==='USDT'||fSym==='EURC') && tSym==='ETH') {
+    const p = ethPrice || await getEthPrice();
+    if (p) { const r=1/p; out=amt*r; rate=`1 ${fSym} = ${r.toFixed(8)} ETH`; src='CoinGecko live'; }
+    else { document.getElementById('swRate').textContent='ETH price unavailable'; return; }
+  } else if (fSym==='ETH' && (tSym==='USDC'||tSym==='USDT'||tSym==='EURC')) {
+    const p = ethPrice || await getEthPrice();
+    if (p) { out=amt*p; rate=`1 ETH = $${p.toFixed(2)}`; src='CoinGecko live'; }
+    else { document.getElementById('swRate').textContent='ETH price unavailable'; return; }
+  } else if (fSym==='USDC' && FWDRATES[tSym]) {
+    out=amt*FWDRATES[tSym]; rate=`1 USDC = ${FWDRATES[tSym]} ${tSym}`; src='Fixed rate';
+  } else if (tSym==='USDC' && FWDRATES[fSym]) {
+    const pen=PENALTY(); out=amt/FWDRATES[fSym]*(1-pen);
+    rate=`1 ${fSym} ≈ ${(1/FWDRATES[fSym]).toFixed(4)} USDC`;
+    fee=(pen*100).toFixed(1)+'% penalty'; src='Fixed rate (reverse)';
+  } else if (FWDRATES[fSym]&&FWDRATES[tSym]) {
+    const pen=PENALTY(); const mid=amt/FWDRATES[fSym]*FWDRATES[tSym];
+    out=mid*(1-pen); rate=`via USDC (cross)`; fee=(pen*100).toFixed(1)+'% penalty'; src='Fixed rate (cross)';
+  }
+
+  document.getElementById('swOut').value = out>0?out.toFixed(6):'';
+  document.getElementById('swRate').textContent=rate;
+  document.getElementById('swFee').textContent=fee;
+  document.getElementById('swSrc').textContent=src;
+}
+
+function getBal(sym) {
+  if (sym==='USDC') return usdcBal||0;
+  return LS.simBal[sym]||0;
+}
+
+function swapMax() {
+  const fSym=document.getElementById('swFrom').value;
+  document.getElementById('swIn').value=getBal(fSym).toFixed(6);
+  calcSwap();
+}
+
+async function doSwap() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const fSym=document.getElementById('swFrom').value;
+  const tSym=document.getElementById('swTo').value;
+  const amt=parseFloat(document.getElementById('swIn').value)||0;
+  if (fSym===tSym){toast('Select different tokens','e');return;}
+  if (amt<=0){toast('Enter amount','e');return;}
+  if (amt>getBal(fSym)){toast('Insufficient '+fSym,'e');return;}
+  const out=parseFloat(document.getElementById('swOut').value)||0;
+  if (out<=0){toast('Cannot calculate output','e');return;}
+
+  const btn=document.getElementById('swapBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Processing…';
+  await sleep(700);
+
+  // Deduct from
+  if (fSym==='USDC') usdcBal=Math.max(0,(usdcBal||0)-amt);
+  else { LS.simBal[fSym]=Math.max(0,(LS.simBal[fSym]||0)-amt); }
+  // Add to
+  if (tSym==='USDC') usdcBal=(usdcBal||0)+out;
+  else { LS.simBal[tSym]=(LS.simBal[tSym]||0)+out; }
+
+  saveLS();
+  addTx('Swap',`${fmt(amt)} ${fSym} → ${fmt(out)} ${tSym}`,-amt,fSym,rndHash(),true);
+  addPts('swap',3);
+  document.getElementById('swIn').value='';
+  document.getElementById('swOut').value='';
+  refreshAll();
+  toast(`Swapped ${fmt(amt)} ${fSym} → ${fmt(out)} ${tSym}`,'s');
+  btn.disabled=false; btn.textContent='Confirm Swap';
+}
+
+// ═══════════════════════════
+//  BRIDGE (SIMULATED WITH REAL CHAIN SWITCH + WALLET SIGN)
+// ═══════════════════════════
+async function doBridge() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const fromKey=document.getElementById('brFrom').value;
+  const token=document.getElementById('brToken').value;
+  const amt=parseFloat(document.getElementById('brAmt').value)||0;
+  if (amt<=0){toast('Enter amount','e');return;}
+
+  const srcChain=fromKey==='sep'?SEP_CHAIN:BSEP_CHAIN;
+  const srcLabel=fromKey==='sep'?'Ethereum Sepolia':'Base Sepolia';
+  const srcContract=USDC_SEP; // sepolia USDC
+
+  const btn=document.getElementById('brBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Switching network…';
+
+  try {
+    // 1. Switch to source chain
+    try {
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:srcChain.chainId}] });
+    } catch(sw) {
+      if (sw.code===4902) await window.ethereum.request({ method:'wallet_addEthereumChain', params:[srcChain] });
+      else if (sw.code===4001) { toast('Network switch rejected','e'); return; }
+    }
+
+    btn.innerHTML='<span class="spin"></span>Sign bridge tx…';
+
+    // 2. Wallet signature on source chain (simulate CCTP burn)
+    // For USDC, do ERC20 approval + burn (we do a self-transfer as proof of interaction)
+    const amtHex=BigInt(Math.round(amt*1e6)).toString(16).padStart(64,'0');
+    const toHex=W.address.slice(2).padStart(64,'0');
+    const txHash = await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{ from:W.address, to:srcContract, data:'0xa9059cbb'+toHex+amtHex, gas:'0x186A0' }]
+    });
+
+    btn.innerHTML='<span class="spin"></span>Bridging (2–10s)…';
+
+    // 3. Simulate CCTP delay
+    await sleep(2000+Math.random()*8000);
+
+    // 4. Switch back to Arc
+    try {
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN.chainId}] });
+    } catch {}
+
+    // 5. Credit on Arc side
+    if (token==='USDC') usdcBal=(usdcBal||0)+amt;
+    else { LS.simBal[token]=(LS.simBal[token]||0)+amt; }
+    saveLS();
+
+    addTx('Bridge',`${srcLabel} → Arc · ${fmt(amt)} ${token}`,+amt,token,txHash,true);
+    addPts('bridge',5);
+    document.getElementById('brAmt').value='';
+    refreshAll();
+    toast(`${fmt(amt)} ${token} arrived on Arc ✓`,'s');
+
+  } catch(e) {
+    if (e.code===4001) toast('Rejected','e');
+    else toast('Bridge error: '+(e.message||'').slice(0,55),'e');
+    // Switch back to Arc on error
+    try { await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:ARC_CHAIN.chainId}] }); } catch {}
+  } finally {
+    btn.disabled=false; btn.textContent='Bridge — Sign in Wallet';
+  }
+}
+
+// ═══════════════════════════
+//  STAKING (SIMULATED)
+// ═══════════════════════════
+function calcStake() {
+  const amt=parseFloat(document.getElementById('stAmt').value)||0;
+  const rew=+(amt*.05).toFixed(6);
+  const pts=+(amt*2).toFixed(1);
+  document.getElementById('stPI').textContent=fmt(amt)+' USDC';
+  document.getElementById('stPO').textContent=fmt(amt)+' tUSDC (1:1)';
+  document.getElementById('stPR').textContent='+'+rew+' USDC';
+  document.getElementById('stPP').textContent='+'+pts+' pts';
+}
+function stakeMax() {
+  document.getElementById('stAmt').value=(usdcBal||0).toFixed(6);
+  calcStake();
+}
+async function doStake() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const amt=parseFloat(document.getElementById('stAmt').value)||0;
+  if (amt<=0){toast('Enter amount','e');return;}
+  if ((usdcBal||0)<amt){toast('Insufficient USDC','e');return;}
+  // Approval TX
+  try {
+    toast('Step 1: Approve USDC…','i');
+    const amtHex=BigInt(Math.round(amt*1e6)).toString(16).padStart(64,'0');
+    const spender='0x0000000000000000000000000000000000000002';
+    const spHex=spender.slice(2).padStart(64,'0');
+    await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{ from:W.address, to:USDC_ARC, data:'0x095ea7b3'+spHex+amtHex, gas:'0xC350' }]
+    });
+    toast('Step 2: Confirm stake…','i');
+    const txHash=rndHash();
+    usdcBal=Math.max(0,(usdcBal||0)-amt);
+    LS.tusdc=(LS.tusdc||0)+amt;
+    LS.treward=+((LS.tusdc||0)*.05).toFixed(6);
+    saveLS();
+    const pts=+(amt*2).toFixed(1);
+    addTx('Stake',`${fmt(amt)} USDC → ${fmt(amt)} tUSDC`,-amt,'USDC',txHash,true);
+    addPts('stake',pts);
+    document.getElementById('stAmt').value=''; calcStake();
+    refreshAll(); toast(`Staked ${fmt(amt)} USDC ✓`,'s');
+  } catch(e){
+    if(e.code===4001) toast('Rejected','e');
+    else toast('Stake failed','e');
+  }
+}
+async function doUnstake() {
+  if (!(LS.tusdc>0)){toast('Nothing staked','e');return;}
+  try {
+    toast('Confirm unstake…','i');
+    const total=LS.tusdc; // 1:1
+    const amtHex=BigInt(Math.round(total*1e6)).toString(16).padStart(64,'0');
+    const toHex=W.address.slice(2).padStart(64,'0');
+    const txHash=await window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{ from:W.address, to:USDC_ARC, data:'0xa9059cbb'+toHex+amtHex, gas:'0x186A0' }]
+    });
+    usdcBal=(usdcBal||0)+total+LS.treward;
+    addTx('Unstake',`tUSDC → ${fmt(total)} USDC (1:1)`,+total,'USDC',txHash,false);
+    addPts('stake',5);
+    LS.tusdc=0; LS.treward=0; saveLS();
+    refreshAll(); toast(`Unstaked ${fmt(total)} USDC ✓`,'s');
+  } catch(e){
+    if(e.code===4001) toast('Rejected','e');
+    else toast('Unstake failed','e');
+  }
+}
+
+// ═══════════════════════════
+//  DAILY CHECK-IN
+// ═══════════════════════════
+function doCheckin() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const today=new Date().toDateString();
+  if (LS.lastCheckin===today){toast('Already claimed today','w');return;}
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  LS.streak = LS.lastCheckin===yesterday.toDateString() ? (LS.streak||0)+1 : 1;
+  LS.lastCheckin=today;
+
+  const s=LS.streak;
+  let base=5, extra=0;
+  if (s>14) extra=5; else if (s>7) extra=3; else if (LS._m7) extra=2;
+  let pts=base+extra;
+  let bonus=0;
+  if (s===7)  { bonus=50;  LS._m7=true; }
+  if (s===14) { bonus=100; LS._m14=true; }
+  if (s===30) { bonus=200; LS._m30=true; }
+  addPts('checkin',pts+bonus);
+  addTx('Check-in',`Day ${s}${bonus?` · +${bonus} milestone`:''}`,pts+bonus,'pts');
+  saveLS(); refreshAll();
+  toast(`Day ${s} · +${pts}${bonus?' +'+bonus+' bonus':''} pts`,'s');
+}
+
+// ═══════════════════════════
+//  DEPLOY (SIMULATED)
+// ═══════════════════════════
+async function doDeploy() {
+  if (!W.connected){toast('Connect wallet first','e');return;}
+  const name=document.getElementById('depName').value||'MyToken';
+  const type=document.getElementById('depType').value;
+  const sym=document.getElementById('depSym').value||'MTK';
+  const btn=document.getElementById('depBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Deploying…';
+  await sleep(1400);
+  const hash=rndHash(); const addr='0x'+rndHex(40); const block=Math.floor(Math.random()*900000+100000);
+  document.getElementById('depResult').style.display='block';
+  document.getElementById('drName').textContent=`${name} (${type}) · ${sym}`;
+  document.getElementById('drAddr').textContent=addr;
+  document.getElementById('drHash').textContent=sa(hash,10);
+  document.getElementById('drBlock').textContent=block;
+  document.getElementById('drExpLink').href=`${EXPLORER}/tx/${hash}`;
+  addTx('Deploy',`${name} · ${type}`,0,'',hash,true);
+  addPts('deploy',10); saveLS(); refreshAll();
+  toast(`${name} deployed ✓`,'s');
+  btn.disabled=false; btn.textContent='Deploy Contract';
+}
+
+// ═══════════════════════════
+//  POINTS
+// ═══════════════════════════
+function addPts(cat,n){
+  LS.points=(LS.points||0)+n;
+  LS.pts_bd=LS.pts_bd||{};
+  LS.pts_bd[cat]=(LS.pts_bd[cat]||0)+n;
+  saveLS(); renderPts();
+}
+function renderPts(){
+  const tot=+(LS.points||0);
+  document.getElementById('ptsTot').textContent=tot.toFixed(1);
+  document.getElementById('ciPts').textContent=tot.toFixed(1);
+  const lbls={checkin:'Check-in',swap:'Swap',bridge:'Bridge',stake:'Staking',send:'Send',deploy:'Deploy'};
+  let html='';
+  Object.entries(LS.pts_bd||{}).forEach(([k,v])=>{
+    if(v>0) html+=`<div class="pi"><span class="piname">${lbls[k]||k}</span><span class="pival">${(+v).toFixed(1)} pts</span></div>`;
+  });
+  document.getElementById('ptsBd').innerHTML=html||'<div class="empty">No points yet</div>';
+}
+
+// ═══════════════════════════
+//  TX HISTORY
+// ═══════════════════════════
+function addTx(type,detail,amt,token,hash=null,sim=false){
+  LS.txs=LS.txs||[];
+  LS.txs.unshift({type,detail,amt,token,hash,sim,
+    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    date:new Date().toLocaleDateString()});
+  if(LS.txs.length>300) LS.txs=LS.txs.slice(0,300);
+  saveLS(); renderHistory();
+}
+function clearHist(){if(!confirm('Clear history?'))return;LS.txs=[];saveLS();renderHistory();}
+
+const TXICO={
+  Send:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
+  Swap:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>`,
+  Bridge:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`,
+  Stake:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  Unstake:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`,
+  Deploy:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+  'Check-in':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+};
+function mkTxH(tx){
+  const neg=tx.amt<0;
+  const amtStr=tx.amt===0?'—':(neg?'':'+')+Math.abs(tx.amt).toFixed(4)+' '+(tx.token||'');
+  const simBadge=tx.sim?` <span style="font-size:.48rem;color:var(--gold);background:var(--goldim);border:1px solid rgba(217,119,6,.15);border-radius:2px;padding:1px 3px;">SIM</span>`:'';
+  const expLink=tx.hash?` · <a href="${EXPLORER}/tx/${tx.hash}" target="_blank" style="color:var(--blue);text-decoration:none;">View↗</a>`:'';
+  return `<div class="txi">
+    <div class="txic">${TXICO[tx.type]||''}</div>
+    <div style="flex:1;min-width:0;">
+      <div class="txtype">${tx.type}${simBadge}</div>
+      <div class="txdet">${tx.detail}${expLink}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div class="txamt ${neg?'neg':'pos'}">${amtStr}</div>
+      <div class="txtime">${tx.time}</div>
+    </div>
+  </div>`;
+}
+function renderHistory(){
+  const txs=LS.txs||[];
+  const f=document.getElementById('histList');
+  const r=document.getElementById('homeRecent');
+  if(!txs.length){const e='<div class="empty">No transactions yet</div>';f.innerHTML=e;r.innerHTML=e;return;}
+  f.innerHTML=txs.map(mkTxH).join('');
+  r.innerHTML=txs.slice(0,3).map(mkTxH).join('');
+}
+
+// ═══════════════════════════
+//  PORTFOLIO RENDER
+// ═══════════════════════════
+function renderPortfolio(){
+  if(usdcBal===null){document.getElementById('portList').innerHTML='<div class="empty"><span class="spin"></span>Loading…</div>';return;}
+  let html=`<div class="asset">
+    <div class="alogo" style="color:var(--usdc);">USDC</div>
+    <div style="flex:1;"><div class="aname">USDC</div><div class="achain">Arc Testnet · Native Gas Token · 0x3600…0000</div></div>
+    <div style="text-align:right;"><div class="abal">${fmt(usdcBal)}</div><div class="ausd">≈ $${usdcBal.toFixed(2)}</div></div>
+  </div>`;
+  if ((LS.tusdc||0)>0) {
+    html+=`<div class="asset">
+      <div class="alogo" style="color:#22C55E;">tUSDC</div>
+      <div style="flex:1;"><div class="aname">tUSDC</div><div class="achain">Staked · ArcFi · 5% APY</div></div>
+      <div style="text-align:right;"><div class="abal">${fmt(LS.tusdc||0)}</div><div class="ausd" style="color:#22C55E;font-size:.56rem;">+${fmt(LS.treward||0)} reward</div></div>
+    </div>`;
+  }
+  Object.entries(LS.simBal||{}).forEach(([sym,bal])=>{
+    if(bal<=0)return;
+    html+=`<div class="asset">
+      <div class="alogo">${sym.slice(0,4)}</div>
+      <div style="flex:1;"><div class="aname">${sym}</div><div class="achain">Simulated · ArcFi</div></div>
+      <div style="text-align:right;"><div class="abal">${fmt(bal)}</div><div class="ausd" style="color:var(--gold);font-size:.54rem;">simulated</div></div>
+    </div>`;
+  });
+  document.getElementById('portList').innerHTML=html;
+}
+
+// ═══════════════════════════
+//  CHECK-IN UI
+// ═══════════════════════════
+function updateCiUI(){
+  const s=LS.streak||0;
+  const today=new Date().toDateString();
+  const done=LS.lastCheckin===today;
+  document.getElementById('ciStr').textContent=s;
+  document.getElementById('ciStat').textContent=done?'Claimed':'Ready';
+  document.getElementById('ciStat').style.color=done?'var(--t3)':'var(--grn)';
+  document.getElementById('ciMsg').textContent=done?'Next reward tomorrow':'';
+  let base=5,extra=0;
+  if(s>=30)extra=5; else if(s>=14)extra=3; else if(LS._m7)extra=2;
+  document.getElementById('ciTodayPts').textContent='+'+(base+extra)+' pts';
+  document.getElementById('ciBonus').textContent=s>=30?'+5 pts/day extra':s>=14?'+3 pts/day extra':s>=7?'+2 pts/day extra':'—';
+  const nm=s<7?`${7-s} days to 7-day (+50)`:s<14?`${14-s} days to 14-day (+100)`:s<30?`${30-s} days to 30-day (+200)`:'30-day milestone reached!';
+  document.getElementById('ciNextMs').textContent=nm;
+  const b=document.getElementById('ciBtn');
+  b.disabled=done||!W.connected; b.textContent=done?'Claimed Today':'Claim Daily Reward';
+  // Dots
+  document.querySelectorAll('.skd').forEach((d,i)=>{
+    d.classList.remove('done','cur');
+    const pos=s%7; const full=Math.floor(s/7);
+    if(full>0||i<pos) d.classList.add('done');
+    if(!done&&i===pos) d.classList.add('cur');
+  });
+}
+
+// ═══════════════════════════
+//  STAKE UI
+// ═══════════════════════════
+function updateStakeUI(){
+  document.getElementById('stBal').textContent=fmt(usdcBal||0)+' USDC';
+  document.getElementById('stStaked').textContent=fmt(LS.tusdc||0);
+  document.getElementById('stReward').textContent='+'+fmt(LS.treward||0)+' USDC';
+  if((LS.tusdc||0)>0){
+    document.getElementById('stActiveBox').style.display='block';
+    const pct=LS.treward>0?Math.min(100,(LS.treward/((LS.tusdc||0)*.05))*100):0;
+    document.getElementById('stBar').style.width=pct+'%';
+    document.getElementById('stPct').textContent=pct.toFixed(0)+'%';
+  } else document.getElementById('stActiveBox').style.display='none';
+}
+
+// ═══════════════════════════
+//  FULL REFRESH
+// ═══════════════════════════
+function refreshAll(){
+  if(usdcBal!==null) document.getElementById('hBal').textContent=fmt(usdcBal);
+  renderPortfolio();
+  renderPts();
+  renderHistory();
+  updateCiUI();
+  updateStakeUI();
+}
+
+// ═══════════════════════════
+//  NAVIGATION
+// ═══════════════════════════
+function nav(id){
+  if(!W.connected&&id!=='home'){toast('Connect wallet first','e');return;}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('SA').scrollTop=0;
+}
+function dNav(id){
+  closeDr(); setTimeout(()=>nav(id),150);
+  document.querySelectorAll('.di').forEach(e=>e.classList.remove('active'));
+  const t=document.getElementById('di-'+id); if(t) t.classList.add('active');
+}
+function openDr(){document.getElementById('drawer').classList.add('open');document.getElementById('ov').classList.add('open');}
+function closeDr(){document.getElementById('drawer').classList.remove('open');document.getElementById('ov').classList.remove('open');}
+function xOpen(u){closeDr();window.open(u,'_blank');}
+
+// ═══════════════════════════
+//  THEME
+// ═══════════════════════════
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('themeBtn').textContent=next==='dark'?'🌙':'☀️';
+  LS.theme=next; saveLS();
+}
+
+// ═══════════════════════════
+//  HELPERS
+// ═══════════════════════════
+function fmt(n){if(n===null||n===undefined)return '—';return Number(n).toFixed(6);}
+function sa(a,n=6){if(!a||a.length<10)return a;return a.slice(0,n)+'…'+a.slice(-4);}
+function rndHex(len){return Array.from({length:len},()=>Math.floor(Math.random()*16).toString(16)).join('');}
+function rndHash(){return '0x'+rndHex(64);}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function copyAddr(){
+  if(!W.address)return;
+  navigator.clipboard.writeText(W.address).then(()=>toast('Address copied','s')).catch(()=>toast('Copy failed','e'));
+}
+let toastT;
+function toast(msg,type='i'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ── INIT ──
+document.documentElement.setAttribute('data-theme',LS.theme||'dark');
+document.getElementById('themeBtn').textContent=(LS.theme||'dark')==='dark'?'🌙':'☀️';
+document.getElementById('brToken').addEventListener('change',()=>{document.getElementById('brTtag').textContent=document.getElementById('brToken').value;});
+document.getElementById('swFrom').addEventListener('change',()=>{calcSwap();});
+refreshAll();
+getEthPrice();
+setInterval(getEthPrice,90000);
+</script>
+</body>
+</html>
